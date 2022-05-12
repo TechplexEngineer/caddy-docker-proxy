@@ -5,11 +5,12 @@ import (
 	"math"
 	"regexp"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
 var whitespaceRegex = regexp.MustCompile("\\s+")
-var labelParserRegex = regexp.MustCompile(`^(?:(.+)\.)?(?:(\d+)_)?([^.]+?)(?:_(\d+))?$`)
+var labelParserRegex = regexp.MustCompile(`^(?:(.+)\.)?(?:(\d+)[_-])?([^.]+?)(?:[_-](\d+))?$`)
 
 // FromLabels converts key value labels into a caddyfile
 func FromLabels(labels map[string]string, templateData interface{}, templateFuncs template.FuncMap) (*Container, error) {
@@ -38,6 +39,9 @@ func getOrCreateBlock(container *Container, path string, blocksByPath map[string
 	}
 
 	parentPath, order, name := parsePath(path)
+
+	// support reverse-proxy and reverse_proxy for strict label implemntations
+	name = strings.Replace(name, "-", "_", -1)
 
 	block := CreateBlock()
 	block.Order = order
